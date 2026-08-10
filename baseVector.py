@@ -5,7 +5,6 @@ vetorial (ChromaDB) usada pelo agente RAG, com embeddings do Google Gemini.
 
 from pydantic import SecretStr
 import logging
-import shutil
 import time
 from pathlib import Path
 
@@ -71,17 +70,29 @@ def criar_ou_carregar_base(persist_directory: Path = CHROMA_DIR) -> Chroma:
 
 def reconstruir_base(persist_directory: Path = CHROMA_DIR) -> Chroma:
     """
-    Força a reconstrução completa da base vetorial: apaga a base existente
+    Força a reconstrução completa da base vetorial: apaga a coleção existente
     (se houver) e reprocessa todos os PDFs do zero.
+
+    A remoção é feita via delete_collection() da API do Chroma, não apagando
+    arquivos do disco diretamente — isso evita PermissionError no Windows,
+    já que o SQLite usado internamente pelo Chroma mantém um arquivo aberto
+    enquanto houver uma conexão ativa (ex: a base já carregada em
+    st.session_state no main.py).
 
     Usada pelo botão "Reconstruir base" do Streamlit (main.py), por exemplo
     após trocar um PDF ou ajustar o chunking em readPDFs.py.
     """
-    if persist_directory.exists():
-        logger.info("Removendo base existente em '%s' antes de reconstruir.", persist_directory)
-        shutil.rmtree(persist_directory)
-
     embeddings = _obter_embeddings()
+
+    if _base_existe(persist_directory):
+        logger.info("Removendo coleção '%s' existente antes de reconstruir.", COLLECTION_NAME)
+        base_existente = Chroma(
+            collection_name=COLLECTION_NAME,
+            embedding_function=embeddings,
+            persist_directory=str(persist_directory),
+        )
+        base_existente.delete_collection()
+
     return _construir_base(embeddings, persist_directory)
 
 
