@@ -6,9 +6,11 @@ vetorial (ChromaDB) usada pelo agente RAG, com embeddings do Google Gemini.
 from pydantic import SecretStr
 import logging
 import shutil
+import time
 from pathlib import Path
 
 from langchain_chroma import Chroma
+from langchain_core.documents import Document
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
 
 from my_keys import GEMINI_API_KEY
@@ -20,6 +22,13 @@ logger = logging.getLogger(__name__)
 CHROMA_DIR = Path("chroma_db")
 COLLECTION_NAME = "univesp"
 EMBEDDING_MODEL = "gemini-embedding-001"
+
+# Controle de taxa para respeitar o limite do tier gratuito do Gemini
+# (100 requisições de embedding por minuto). Lotes pequenos + pausa entre
+# eles mantêm a taxa efetiva em ~90 req/min, com margem de segurança.
+BATCH_SIZE = 15
+BATCH_DELAY_SECONDS = 10
+MAX_RETRIES = 5
 
 
 def _obter_embeddings() -> GoogleGenerativeAIEmbeddings:
@@ -77,7 +86,7 @@ def reconstruir_base(persist_directory: Path = CHROMA_DIR) -> Chroma:
 
 
 def _construir_base(embeddings: GoogleGenerativeAIEmbeddings, persist_directory: Path) -> Chroma:
-    """Lê os PDFs, divide em chunks, gera embeddings e persiste no ChromaDB."""
+    """Lê os PDFs, divide em chunks e persiste os embeddings no ChromaDB em lotes."""
     paginas = carregar_pdfs()
     chunks = dividir_em_chunks(paginas)
 
@@ -88,19 +97,58 @@ def _construir_base(embeddings: GoogleGenerativeAIEmbeddings, persist_directory:
         )
 
     logger.info(
-        "Gerando embeddings e persistindo %d chunks em '%s'... "
-        "(isso faz chamadas à API do Gemini, pode levar alguns segundos)",
+        "Criando base vazia e adicionando %d chunks em lotes de %d "
+        "(pausa de %ds entre lotes, para respeitar o limite de requisições da API)...",
         len(chunks),
-        persist_directory,
+        BATCH_SIZE,
+        BATCH_DELAY_SECONDS,
     )
-    vector_store = Chroma.from_documents(
-        documents=chunks,
-        embedding=embeddings,
+
+    # Cria a coleção vazia primeiro (não faz chamadas de embedding ainda).
+    vector_store = Chroma(
         collection_name=COLLECTION_NAME,
+        embedding_function=embeddings,
         persist_directory=str(persist_directory),
     )
+
+    _adicionar_em_lotes(vector_store, chunks)
+
     logger.info("Base vetorial criada com sucesso.")
     return vector_store
+
+
+def _adicionar_em_lotes(vector_store: Chroma, chunks: list[Document]) -> None:
+    """Adiciona os chunks ao Chroma em lotes pequenos, com pausa entre eles."""
+    total = len(chunks)
+    for inicio in range(0, total, BATCH_SIZE):
+        lote = chunks[inicio : inicio + BATCH_SIZE]
+        _adicionar_lote_com_retry(vector_store, lote)
+        logger.info("Lote %d–%d de %d processado.", inicio + 1, inicio + len(lote), total)
+        if inicio + BATCH_SIZE < total:
+            time.sleep(BATCH_DELAY_SECONDS)
+
+
+def _adicionar_lote_com_retry(vector_store: Chroma, lote: list[Document], tentativa: int = 1) -> None:
+    """
+    Tenta adicionar um lote de chunks à base. Se a API retornar erro de quota
+    excedida (RESOURCE_EXHAUSTED / 429), espera progressivamente mais e tenta
+    novamente, até MAX_RETRIES vezes.
+    """
+    try:
+        vector_store.add_documents(lote)
+    except Exception as erro:
+        if "RESOURCE_EXHAUSTED" in str(erro) and tentativa <= MAX_RETRIES:
+            espera = 20 * tentativa
+            logger.warning(
+                "Quota da API excedida (tentativa %d/%d). Aguardando %ds antes de tentar novamente...",
+                tentativa,
+                MAX_RETRIES,
+                espera,
+            )
+            time.sleep(espera)
+            _adicionar_lote_com_retry(vector_store, lote, tentativa + 1)
+        else:
+            raise
 
 
 if __name__ == "__main__":
