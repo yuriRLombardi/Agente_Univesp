@@ -10,6 +10,7 @@ import re
 from langchain.agents import create_agent
 from langchain_chroma import Chroma
 from langchain_core.messages import AIMessage, ToolMessage
+from langchain_google_genai import ChatGoogleGenerativeAI
 
 from ferramentas import criar_ferramentas
 from my_keys import GEMINI_API_KEY
@@ -18,7 +19,6 @@ from my_models import GEMINI_FLASH
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-MODELO_AGENTE = f"google_genai:{GEMINI_FLASH}"
 
 SYSTEM_PROMPT = """\
 Você é o assistente virtual da UNIVESP (Universidade Virtual do Estado de São Paulo).
@@ -57,13 +57,14 @@ def criar_agente(vector_store: Chroma):
         )
 
     ferramentas = criar_ferramentas(vector_store)
+    modelo = ChatGoogleGenerativeAI(model=GEMINI_FLASH, google_api_key=GEMINI_API_KEY)
 
     agente = create_agent(
-        model=MODELO_AGENTE,
+        model=modelo,
         tools=ferramentas,
         system_prompt=SYSTEM_PROMPT,
     )
-    logger.info("Agente criado com modelo '%s' e %d ferramenta(s).", MODELO_AGENTE, len(ferramentas))
+    logger.info("Agente criado com modelo '%s' e %d ferramenta(s).", GEMINI_FLASH, len(ferramentas))
     return agente
 
 
