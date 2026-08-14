@@ -7,7 +7,7 @@ categoria) e divisão em chunks.
 import logging
 from pathlib import Path
 
-from langchain_community.document_loaders import PyPDFLoader
+from langchain_pymupdf4llm import PyMuPDF4LLMLoader
 from langchain_core.documents import Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
@@ -67,7 +67,7 @@ def carregar_pdfs(pdfs_dir: Path = PDFS_DIR) -> list[Document]:
 
         logger.info("Carregando '%s' (categoria: %s)", caminho_pdf.name, categoria)
         try:
-            loader = PyPDFLoader(str(caminho_pdf))
+            loader = PyMuPDF4LLMLoader(str(caminho_pdf))
             paginas = loader.load()
         except Exception:
             logger.exception("Falha ao carregar '%s' — arquivo será ignorado", caminho_pdf.name)
