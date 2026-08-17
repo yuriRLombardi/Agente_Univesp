@@ -206,32 +206,44 @@ Na primeira execução, a base vetorial será criada automaticamente a partir do
 |---|---|
 | FAQ | "O que é a Univesp?" |
 | Vestibular 2026 | "Quando são as provas do vestibular 2026?", "Como funciona a inscrição no vestibular?" |
-| Manual do Aluno | "Quais são as regras de comportamento do aluno?", "Como funciona o estágio na Univesp?" |
+| Manual do Aluno | "Quais são as regras de conduta da Univesp?", "Como funciona o estágio na Univesp?" |
 
 O agente também reconhece perguntas fora do escopo dos documentos e responde de forma honesta, sem inventar informação.
 
+**Pergunta:** *"O que é a Univesp?"*
+ 
+> De acordo com o documento de Perguntas Frequentes (FAQ) da Univesp, a Universidade Virtual do Estado de São Paulo é a maior universidade pública do país em relação ao número de alunos matriculados na graduação. Ela é gratuita, mantida pelo Governo do Estado de São Paulo, e oferece ensino superior na modalidade de educação a distância (EAD).
+ 
+*Fonte citada: `FAQUnivesp.pdf`*
+ 
 ---
-
-## 📝 Exemplos de Respostas Geradas
-
+ 
+**Pergunta:** *"Quando são as provas do vestibular 2026?"*
+ 
+> De acordo com o Manual do Candidato do Vestibular 2026, a aplicação da Prova e Redação ocorrerá no dia 26/04/2026, com início às 13h (os portões serão abertos às 12h e fechados às 12h40).
+ 
+*Fonte citada: `Manual_do_Candidato2026.pdf`*
+ 
+---
+ 
 **Pergunta:** *"Quais são as regras de conduta da Univesp?"*
-
+ 
 > De acordo com o Manual do Aluno, no que tange à participação nas lives e interações acadêmicas, as orientações de conduta incluem:
 >
 > - **Respeito mútuo:** Tratar todos sempre com muito respeito e cordialidade.
 > - **Proatividade:** Não esperar todas as respostas do facilitador e ser proativo.
 > - **Boa convivência em grupo:** Durante as lives (que costumam ter muitas pessoas), ser breve para proporcionar a oportunidade de que outros alunos também falem e tirem suas dúvidas, além de compartilhar o espaço de perguntas com os colegas.
-
+ 
 *Fonte citada: `ManualAluno.pdf`*
-
+ 
 ---
-
+ 
 **Pergunta:** *"Qual é o horário de funcionamento da lanchonete mais próxima da minha casa?"*
-
+ 
 > Não encontrei evidências suficientes nos documentos disponíveis (FAQ, Manual do Aluno e Manual do Candidato do Vestibular) para responder a essa pergunta, pois as informações fornecidas referem-se estritamente aos aspectos institucionais, acadêmicos e do processo seletivo da UNIVESP.
-
+ 
 *Nenhuma fonte citada — o agente reconheceu que a pergunta estava fora do escopo dos documentos disponíveis.*
-
+ 
 ---
 
 ## 📈 Melhorias Futuras
