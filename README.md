@@ -6,6 +6,27 @@ Projeto desenvolvido como desafio técnico da trilha **Tech AI Builder**, na seg
 
 ---
 
+## 📸 Demonstração
+
+**Tela inicial**, exibida ao abrir o app (e o estado de carregamento na primeira execução, quando a base vetorial ainda está sendo montada):
+
+![Tela inicial do Agente UNIVESP](image/pagina-principal.png)
+![Carregamento da base de conhecimento](image/pagina-principal-carregamento.png)
+
+**Conversa com o agente**, incluindo uma pergunta dentro do escopo dos documentos e uma pergunta fora de escopo — mostrando a recusa honesta quando a informação não está disponível:
+
+![Demonstração de uma conversa com o agente](image/demonstracao.gif)
+
+**Modo Debug**, exibindo o contexto bruto recuperado do ChromaDB antes de chegar ao modelo:
+
+![Modo Debug mostrando o contexto recuperado](image/modo-debug.gif)
+
+**Limpar conversa**, reiniciando o histórico do chat:
+
+![Limpar histórico da conversa](image/limpar-conversa.gif)
+
+---
+
 ## 🎯 Objetivo
 
 Aplicar na prática uma arquitetura RAG completa e confiável: em vez de depender do conhecimento genérico do modelo de linguagem (que pode estar desatualizado ou simplesmente errado sobre uma universidade específica), o agente é instruído a **sempre consultar os documentos oficiais** antes de responder, e a admitir explicitamente quando não encontra a informação — em vez de alucinar uma resposta plausível, porém falsa.
@@ -100,8 +121,16 @@ Agente_Univesp/
 │   ├── FAQUnivesp.pdf
 │   ├── Manual_do_Candidato2026.pdf
 │   └── ManualAluno.pdf
+├── image/
+│   ├── pagina-principal.png
+│   ├── pagina-principal-carregamento.png
+│   ├── demonstracao.gif
+│   ├── modo-debug.gif
+│   └── limpar-conversa.gif
+├── .streamlit/
+│   ├── secrets.example.toml   # modelo commitado, sem chave real
+│   └── secrets.toml            # sua chave real, gitignored
 ├── chroma_db/          # gerado automaticamente, gitignored
-├── .env                 # gitignored
 ├── .gitignore
 └── README.md
 ```
@@ -116,7 +145,7 @@ Agente_Univesp/
 | `ferramentas.py` | Define as 3 ferramentas (`consultar_faq`, `consultar_vestibular`, `consultar_manual_aluno`) que o agente pode chamar |
 | `agentRAG.py` | Monta o agente (Gemini + tool calling) e orquestra a geração da resposta final |
 | `main.py` | Interface Streamlit: chat, histórico, fontes utilizadas e modo Debug |
-| `my_keys.py` | Carrega a chave da API do Gemini a partir do `.env` |
+| `my_keys.py` | Carrega a chave da API do Gemini a partir de `st.secrets` (`.streamlit/secrets.toml`) |
 | `my_models.py` | Centraliza os nomes dos modelos Gemini utilizados |
 
 ---
@@ -141,11 +170,21 @@ pip install -r requirements.txt
 
 **4. Configure a chave da API**
 
-Crie um arquivo `.env` na raiz do projeto:
+O projeto usa o gerenciamento de segredos nativo do Streamlit (`st.secrets`), em vez de um arquivo `.env`. Copie o modelo já incluído no repositório:
 
+```bash
+mkdir -p .streamlit
+cp .streamlit/secrets.example.toml .streamlit/secrets.toml
 ```
-GEMINI_API_KEY=sua_chave_aqui
+
+E edite `.streamlit/secrets.toml` com sua chave real:
+
+```toml
+[gemini]
+GEMINI_API_KEY = "sua_chave_aqui"
 ```
+
+> `secrets.toml` é ignorado pelo Git (contém sua chave real) — só `secrets.example.toml` fica versionado, como modelo.
 
 **5. Adicione os PDFs**
 
@@ -175,19 +214,23 @@ O agente também reconhece perguntas fora do escopo dos documentos e responde de
 
 ## 📝 Exemplos de Respostas Geradas
 
-**Pergunta:** *"Quando são as provas do vestibular 2026?"*
+**Pergunta:** *"Quais são as regras de conduta da Univesp?"*
 
-> De acordo com o Manual do Candidato do Vestibular 2026, a aplicação da Prova e Redação ocorrerá no dia 26/04/2026, com início às 13h (os portões serão abertos a partir das 12h e fechados às 12h40).
+> De acordo com o Manual do Aluno, no que tange à participação nas lives e interações acadêmicas, as orientações de conduta incluem:
+>
+> - **Respeito mútuo:** Tratar todos sempre com muito respeito e cordialidade.
+> - **Proatividade:** Não esperar todas as respostas do facilitador e ser proativo.
+> - **Boa convivência em grupo:** Durante as lives (que costumam ter muitas pessoas), ser breve para proporcionar a oportunidade de que outros alunos também falem e tirem suas dúvidas, além de compartilhar o espaço de perguntas com os colegas.
 
-*Fonte citada: `Manual_do_Candidato2026.pdf`*
+*Fonte citada: `ManualAluno.pdf`*
 
 ---
 
 **Pergunta:** *"Qual é o horário de funcionamento da lanchonete mais próxima da minha casa?"*
 
-> Como essa pergunta se refere a um estabelecimento externo (uma lanchonete próxima à sua casa) e não a informações institucionais, acadêmicas ou do vestibular da UNIVESP, não há dados sobre isso nos documentos oficiais da universidade (FAQ, Manual do Aluno ou Manual do Candidato). Portanto, não possuo informações para responder a essa pergunta.
+> Não encontrei evidências suficientes nos documentos disponíveis (FAQ, Manual do Aluno e Manual do Candidato do Vestibular) para responder a essa pergunta, pois as informações fornecidas referem-se estritamente aos aspectos institucionais, acadêmicos e do processo seletivo da UNIVESP.
 
-*Nenhuma ferramenta foi chamada — o agente reconheceu que a pergunta estava fora do escopo antes mesmo de consultar os documentos.*
+*Nenhuma fonte citada — o agente reconheceu que a pergunta estava fora do escopo dos documentos disponíveis.*
 
 ---
 
