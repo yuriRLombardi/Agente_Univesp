@@ -2,7 +2,7 @@
 
 > Chatbot conversacional que responde dúvidas sobre a UNIVESP com base exclusivamente em documentos oficiais, usando arquitetura RAG (Retrieval-Augmented Generation).
 
-Projeto desenvolvido como desafio técnico da trilha **Tech AI Builder**, na segunda fase do programa **Oracle Next Education (ONE)**. O agente combina Google Gemini, LangChain e ChromaDB para responder perguntas sobre a UNIVESP (Universidade Virtual do Estado de São Paulo) a partir de três documentos oficiais indexados — FAQ, Manual do Candidato do Vestibular 2026 e Manual do Aluno — sem inventar informações que não estejam nesses documentos.
+Projeto desenvolvido como desafio técnico da trilha **Tech AI Builder** usando o Claude como ajuda para o desenvolvimento, na segunda fase do programa **Oracle Next Education (ONE)**. O agente combina Google Gemini, LangChain e ChromaDB para responder perguntas sobre a UNIVESP (Universidade Virtual do Estado de São Paulo) a partir de três documentos oficiais indexados — FAQ, Manual do Candidato do Vestibular 2026 e Manual do Aluno — sem inventar informações que não estejam nesses documentos.
 
 ---
 
